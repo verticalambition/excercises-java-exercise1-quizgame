@@ -14,12 +14,4 @@ public class QuestionAnswer {
     public int getAnswer() {
         return answer;
     }
-
-    public void setQuestion(String question) {
-        this.question = question;
-    }
-
-    public void setAnswer(int answer) {
-        this.answer = answer;
-    }
 }

@@ -2,8 +2,12 @@ import com.opencsv.bean.CsvToBeanBuilder;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class QuizGame {
     public static void main(String[] args) {
@@ -18,28 +22,34 @@ public class QuizGame {
             e.printStackTrace();
             return;
         }
-
-        int correctAnswers = BeginQuiz(problems);
-        System.out.printf("You answered %d out of %d questions correctly", correctAnswers, questionCount);
-    }
-
-    public static int BeginQuiz(List<QuestionAnswer> problems) {
-        int correctCount = 0;
-        Scanner userInput = new Scanner(System.in);
+        final BlockingQueue<Integer> theScore = new ArrayBlockingQueue<Integer>(1);
+        final ArrayList<Integer> stopSign = new ArrayList();
         System.out.println("Are you ready to beeeeegggiiiinnnn!?");
+        Scanner userInput = new Scanner(System.in);
         String readyOrNot = userInput.nextLine();
         if(readyOrNot.toUpperCase().startsWith(("Y"))) {
-            for (QuestionAnswer problem : problems) {
-                System.out.printf("What is %s\n", problem.getQuestion());
-                int response = userInput.nextInt();
-                if (response == problem.getAnswer()) {
-                    correctCount++;
-                } else {
-                    System.out.printf("Incorrect, answer was %d\n", problem.getAnswer());
+            Thread timeThread = new Thread() {
+                public void run() {
+                    try {
+                        Thread.sleep(10000);
+                        System.out.println("Time's UP!");
+                        stopSign.add(3);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-            return correctCount;
+            };
+            timeThread.start();
+            PlayGame theGame = new PlayGame(theScore, problems.iterator(), stopSign);
+            theGame.run();
+
         }
-        return 0;
+        try {
+            int actualScore = theScore.poll(50000000, TimeUnit.MILLISECONDS);
+            System.out.printf("You answered %d out of %d questions correctly", actualScore, questionCount);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
