@@ -3,10 +3,11 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 
-public class PlayGame implements Runnable {
+public class PlayGame extends Thread {
     private BlockingQueue<Integer> score;
     private Iterator<QuestionAnswer> problems;
     private List<Integer> stopSign;
+    private int correctCount;
 
     public PlayGame(BlockingQueue<Integer> score, Iterator<QuestionAnswer> problems, List<Integer> stopSign) {
         this.score = score;
@@ -15,7 +16,6 @@ public class PlayGame implements Runnable {
     }
 
     public void run() {
-        int correctCount = 0;
         Scanner userInput = new Scanner(System.in);
         while (stopSign.isEmpty()) {
             if (problems.hasNext()) {
@@ -32,6 +32,12 @@ public class PlayGame implements Runnable {
             }
         }
         score.add(correctCount);
+    }
+
+    @Override
+    public void interrupt() {
+        score.add(correctCount);
+        super.interrupt();
     }
 }
 

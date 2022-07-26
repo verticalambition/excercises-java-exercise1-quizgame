@@ -24,29 +24,32 @@ public class QuizGame {
         }
         final BlockingQueue<Integer> theScore = new ArrayBlockingQueue<Integer>(1);
         final ArrayList<Integer> stopSign = new ArrayList();
+        final PlayGame theGame = new PlayGame(theScore, problems.iterator(), stopSign);
         System.out.println("Are you ready to beeeeegggiiiinnnn!?");
         Scanner userInput = new Scanner(System.in);
         String readyOrNot = userInput.nextLine();
-        if(readyOrNot.toUpperCase().startsWith(("Y"))) {
-            Thread timeThread = new Thread() {
-                public void run() {
-                    try {
-                        Thread.sleep(10000);
-                        System.out.println("Time's UP!");
-                        stopSign.add(3);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        Thread timeThread = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(30000);
+                    System.out.println("Time's UP!");
+                    theGame.interrupt();
+                } catch (InterruptedException e) {
                 }
-            };
-            timeThread.start();
-            PlayGame theGame = new PlayGame(theScore, problems.iterator(), stopSign);
-            theGame.run();
+            }
+        };
 
+        if(readyOrNot.toUpperCase().startsWith(("Y"))) {
+
+            timeThread.start();
+
+            theGame.start();
         }
         try {
             int actualScore = theScore.poll(50000000, TimeUnit.MILLISECONDS);
             System.out.printf("You answered %d out of %d questions correctly", actualScore, questionCount);
+            timeThread.interrupt();
+
 
         } catch (InterruptedException e) {
             e.printStackTrace();
